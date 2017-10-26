@@ -4,6 +4,7 @@
   "description": "A build system powered by Fuse",
   "main": "index.js",
   "scripts": {
+    "start": "ts-node src/index.ts",
     "test": "mocha --require ts-node/register test/**/*.ts"
   },
   "repository": {
