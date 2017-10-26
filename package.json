@@ -1,0 +1,32 @@
+{
+  "name": "fusepack",
+  "version": "1.0.0",
+  "description": "A build system powered by Fuse",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --require ts-node/register test/**/*.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Widdershin/fusepack.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Widdershin/fusepack/issues"
+  },
+  "homepage": "https://github.com/Widdershin/fusepack#readme",
+  "devDependencies": {
+    "mocha": "^4.0.1",
+    "postcss-cli": "^4.1.1",
+    "ts-node": "^3.3.0",
+    "typescript": "^2.5.3"
+  },
+  "dependencies": {
+    "@types/mocha": "^2.2.43",
+    "@types/node": "^8.0.33",
+    "browserify": "^14.5.0",
+    "fs-fuse": "0.0.0"
+  }
+}
