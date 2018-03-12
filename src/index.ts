@@ -55,7 +55,7 @@ function compile (instruction, cb) {
 
   console.log('compiling: ', instruction.source, '->', instruction.commands.join(' -> '), '->', path.join(config.directory, instruction.output));
   const command = `cat ${instruction.source} | ${instruction.commands.join(' | ')}`
-  child.exec(command, {encoding: 'buffer'}, (err, stdout, stderr) => {
+  child.exec(command, {maxBuffer: 1024 * 1024, encoding: 'buffer'}, (err, stdout, stderr) => {
     if (err) console.error(err.message);
 
     results[instruction.output] = stdout;
@@ -120,6 +120,10 @@ fuse.mount(config.directory, {
 
     compile(instruction, (result) => {
       var part = result.slice(pos);
+      if (part.length > 1024) {
+        part = part.slice(0, 1024);
+      }
+
       if (part.length === 0) return cb(0)
       part.copy(buf);
 
