@@ -1,4 +1,0 @@
-out/
-
-source.js -> npx browserify - -> bundle.js
-styles.css -> npx postcss -> bundle.css
