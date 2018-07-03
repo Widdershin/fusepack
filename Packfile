@@ -1,0 +1,5 @@
+[ { name = "output.css"
+  , dependencies = ["styles.css"]
+  , command = "postcss styles.css -o build/output.css"
+  }
+]

@@ -1,0 +1,11 @@
+Prelude Just :: a -> Maybe a
+Data.Maybe Just :: a -> Maybe a
+Data.Strict.Maybe Just :: a -> Maybe a
+Data.GI.Base.ShortPrelude Just :: a -> Maybe a
+NumericPrelude.Base Just :: a -> Maybe a
+CorePrelude Just :: a -> Maybe a
+Foundation Just :: a -> Maybe a
+Test.LeanCheck.Error errorToNothing :: a -> Maybe a
+Test.LeanCheck.Error anyErrorToNothing :: a -> Maybe a
+Test.LeanCheck.Utils.TypeBinding mayb :: a -> Maybe a
+-- plus more results not shown, pass --count=20 to see more

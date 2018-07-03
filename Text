@@ -1,0 +1,11 @@
+System.FilePath.Posix dropExtension :: FilePath -> FilePath
+System.FilePath.Posix dropExtensions :: FilePath -> FilePath
+System.FilePath.Posix takeFileName :: FilePath -> FilePath
+System.FilePath.Posix dropFileName :: FilePath -> FilePath
+System.FilePath.Posix takeDirectory :: FilePath -> FilePath
+System.FilePath.Posix takeDrive :: FilePath -> FilePath
+System.FilePath.Posix dropDrive :: FilePath -> FilePath
+System.FilePath.Posix addTrailingPathSeparator :: FilePath -> FilePath
+System.FilePath.Posix dropTrailingPathSeparator :: FilePath -> FilePath
+System.FilePath.Posix normalise :: FilePath -> FilePath
+-- plus more results not shown, pass --count=20 to see more

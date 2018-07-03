@@ -37,9 +37,12 @@ resolver: lts-11.12
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - .
+  #
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
-# extra-deps: []
+extra-deps: [
+  HFuse-0.2.5.0
+]
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
@@ -64,3 +67,4 @@ packages:
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
+#
