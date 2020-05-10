@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5891d029b82194b16bc988be41f4d2ba8683fe42db1679579a29ea458f4d6256
+-- hash: a007d1833fef8da8894a3b4ed80781f07c782e97ffa2607fb592110698125dc4
 
 name:           fusepack
 version:        0.1.0.0
@@ -46,7 +46,9 @@ executable fusepack
     , base >=4.7 && <5
     , bytestring
     , dhall
+    , directory
     , fusepack
+    , process
     , text
     , unix
   other-modules:

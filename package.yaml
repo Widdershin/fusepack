@@ -40,6 +40,8 @@ executables:
     - unix
     - bytestring
     - text
+    - process
+    - directory
 
 tests:
   fusepack-test:
