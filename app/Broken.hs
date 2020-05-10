@@ -1,21 +1,21 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Main where
+module Broken where
 
-import Data.List
-import Data.Maybe
-import Data.Semigroup
+import Dhall
+
 import qualified Data.ByteString.Char8 as B
+import Data.List (find)
+import Data.Maybe (isJust)
+import Data.String (fromString)
+import Data.Text.Lazy (pack, unpack)
 import Foreign.C.Error
 import System.Posix.Files
 import System.Posix.IO
 import System.Posix.Types
 
-import Dhall
 import System.Fuse
-
-type HT = ()
 
 type Config = [BuildFile]
 
@@ -26,6 +26,8 @@ data BuildFile = BuildFile
   } deriving (Generic, Show)
 
 instance Interpret BuildFile
+
+type HT = ()
 
 main :: IO ()
 main = do
@@ -39,8 +41,8 @@ helloFSOps config =
     , fuseOpen = helloOpen config
     , fuseRead = helloRead config
     , fuseOpenDirectory = helloOpenDirectory
-    , fuseReadDirectory = helloReadDirectory config
-    , fuseGetFileSystemStats = helloGetFileSystemStats
+    , fuseReadDirectory = helloReadDirectory
+    , fuseGetFileSystemStats = helloGetFileSystemStats config
     }
 
 helloString :: B.ByteString
@@ -63,7 +65,7 @@ dirStat ctx =
           , otherReadMode
           , otherExecuteMode
           ]
-    , statLinkCount = 2
+    , statLinkCount = 3
     , statFileOwner = fuseCtxUserID ctx
     , statFileGroup = fuseCtxGroupID ctx
     , statSpecialDeviceID = 0
@@ -74,8 +76,8 @@ dirStat ctx =
     , statStatusChangeTime = 0
     }
 
-fileStat :: FuseContext -> FileStat
-fileStat ctx =
+fileStat :: BuildFile -> FuseContext -> FileStat
+fileStat buildFile ctx =
   FileStat
     { statEntryType = RegularFile
     , statFileMode =
@@ -91,59 +93,60 @@ fileStat ctx =
     , statStatusChangeTime = 0
     }
 
-configEntryByPath :: Config -> FilePath -> Maybe BuildFile
-configEntryByPath config path =
-  find matchingBuildFile config
-  where
-    matchingBuildFile :: BuildFile -> Bool
-    matchingBuildFile (BuildFile name _ _) = ("/" <> name) == path
-
-pathInConfig :: Config -> FilePath -> Bool
-pathInConfig _ path | path == helloPath = True
-pathInConfig config path = isJust $ configEntryByPath config path
+pathInConfig :: FilePath -> Config -> Maybe BuildFile
+pathInConfig path config = find (\b -> name b == path) config
 
 helloGetFileStat :: Config -> FilePath -> IO (Either Errno FileStat)
-helloGetFileStat _ "/" = do
-  ctx <- getFuseContext
-  return $ Right $ dirStat ctx
-helloGetFileStat config path
-  | pathInConfig config path = do
-    ctx <- getFuseContext
-    return $ Right $ fileStat ctx
-helloGetFileStat _ _ = return $ Left eNOENT
+helloGetFileStat _ "/" = Right . dirStat <$> getFuseContext
+helloGetFileStat config path =
+  case pathInConfig path config of
+    Just buildFile -> Right . fileStat buildFile <$> getFuseContext
+    Nothing -> return $ Left eNOENT
 
 helloOpenDirectory "/" = return eOK
 helloOpenDirectory _ = return eNOENT
 
-helloReadDirectory :: Config -> FilePath -> IO (Either Errno [(FilePath, FileStat)])
-helloReadDirectory config "/" = do
+helloBuildFile :: BuildFile
+helloBuildFile = BuildFile {
+                  name = "/hello",
+                  dependencies = [],
+                  command = ""
+                 }
+
+helloReadDirectory :: FilePath -> IO (Either Errno [(FilePath, FileStat)])
+helloReadDirectory "/" = do
   ctx <- getFuseContext
   return $
-    Right $ [(".", dirStat ctx), ("..", dirStat ctx), (helloName, fileStat ctx)] <> (buildEntry ctx <$> config)
+    Right [(".", dirStat ctx), ("..", dirStat ctx), (helloName, fileStat helloBuildFile ctx)]
   where
     (_:helloName) = helloPath
-    buildEntry ctx (BuildFile name _ _) = (name, fileStat ctx)
-helloReadDirectory config _ = return (Left eNOENT)
+helloReadDirectory _ = return (Left (eNOENT))
 
-helloOpen :: Config -> FilePath -> OpenMode -> OpenFileFlags -> IO (Either Errno HT)
+helloOpen ::
+     Config -> FilePath -> OpenMode -> OpenFileFlags -> IO (Either Errno HT)
 helloOpen config path mode flags
-  | pathInConfig config path =
+  | path == helloPath =
     case mode of
       ReadOnly -> return (Right ())
       _ -> return (Left eACCES)
   | otherwise = return (Left eNOENT)
 
 helloRead ::
-     Config -> FilePath -> HT -> ByteCount -> FileOffset -> IO (Either Errno B.ByteString)
+     Config
+  -> FilePath
+  -> HT
+  -> ByteCount
+  -> FileOffset
+  -> IO (Either Errno B.ByteString)
 helloRead config path _ byteCount offset
-  | pathInConfig config path =
+  | path == helloPath =
     return $
     Right $
     B.take (fromIntegral byteCount) $ B.drop (fromIntegral offset) helloString
   | otherwise = return $ Left eNOENT
 
-helloGetFileSystemStats :: String -> IO (Either Errno FileSystemStats)
-helloGetFileSystemStats str =
+helloGetFileSystemStats :: Config -> String -> IO (Either Errno FileSystemStats)
+helloGetFileSystemStats config str =
   return $
   Right $
   FileSystemStats
