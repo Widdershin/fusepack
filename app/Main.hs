@@ -70,14 +70,45 @@ pathInConfig config path = isJust $ configEntryByPath config path
 -- one first step could be changing it so that information about a buildfile is real
 -- for example, just trying to get the length of the output requires us to have output
 --
+--
+-- the current design of specifying commands sucks for a few reasons
+--
+-- one of the most common things I might want to use this for is typescript
+-- right now, we only support commands that print the output to stdout
+--
+-- we want to support commands outputting multiple files
+--
+-- wacky approach
+--
+-- mount a virtual version of the filesystem in tmp
+-- run every command in a chroot inside of the vfs
+--
+-- this allows us to trace which files a process reads from (and therefore depends on)
+-- the process can write as many files as it likes, but only the ones in the build/ directory show up in the project
+--
+-- other writes should probably pass through to allow for 
+--
+-- shouldn't be much of an issue to make a tmp folder at process start and chroot to it when necessary
+-- might be more difficult to run two fuse systems at the same time? will just need to dig into hfuse
+--
+-- could also just run one fuse system in the tmp folder and link it into the project dir
+--
+-- the vfs in tmp is going to need to treat the build directory the same way
+-- might as well just keep the vfs and symlink through
+--
+-- what concrete things do I need to know?
+--    - how to call fuse without the CLI handling
+--    - how to symlink in 'skell
+--    - is there an easy way to do passthrough ops with hfuse? maybe the default ops?
 getOutput :: FilePath -> BuildFile -> IO (Either BuildError B.ByteString)
 getOutput cwd (BuildFile name dependencies command) = do
   (code, stdout, stderr) <- readCreateProcessWithExitCode ((shell (T.unpack command)) {cwd = Just cwd}) ""
-  return $ case code of
-    ExitSuccess ->
-      Right (B.pack (trace (stdout <> "\n" <> stderr) stdout))
+  case code of
+    ExitSuccess -> do
+      putStrLn $ "Built " <> name <> " successfully."
+      return $ Right (B.pack stdout)
     ExitFailure n ->
-      Left $ BuildError $ "Error running command: " <> command <> ": " <> (T.pack . show) n <> " " <> (T.pack stderr)
+      return $ Left $ BuildError $ "Error running command: " <> command <> ": " <> (T.pack . show) n <> " " <> (T.pack stderr)
 
 main :: IO ()
 main = do

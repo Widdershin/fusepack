@@ -5,4 +5,11 @@
   , command =
       "cat Packfile | tr a-z A-Z"
   }
+, { name =
+      "output.css"
+  , dependencies =
+      [ "foo" ]
+  , command =
+      "postcss styles.css -o build/output.css"
+  }
 ]
